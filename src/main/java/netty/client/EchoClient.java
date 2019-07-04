@@ -14,6 +14,9 @@ import io.netty.handler.codec.DelimiterBasedFrameDecoder;
 import io.netty.handler.codec.string.StringDecoder;
 import netty.handler.EchoClientHandler;
 
+/**
+ * 粘包 拆包
+ */
 public class EchoClient {
     public static void main(String[] args) throws Exception {
         String host = "127.0.0.1";

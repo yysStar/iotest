@@ -8,35 +8,34 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.FixedLengthFrameDecoder;
+import io.netty.handler.codec.serialization.ClassResolvers;
+import io.netty.handler.codec.serialization.ObjectDecoder;
+import io.netty.handler.codec.serialization.ObjectEncoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import netty.handler.EchoServerHandler;
+import netty.handler.SubReqServerHandler;
 
 /**
- * 拆包，分隔方式测试
+ * NIO序列化
  */
-public class EchoServer {
-    public void bind(int port) throws Exception{
+public class SubReqServer {
+    public void bind(int port) throws Exception {
         //配置服务端的NIO线程组
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
-        try{
-            ServerBootstrap b = new ServerBootstrap();
+        try {
+            ServerBootstrap b =new ServerBootstrap();
             b.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class)
                     .option(ChannelOption.SO_BACKLOG, 100)
                     .handler(new LoggingHandler(LogLevel.INFO))
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
-                        protected void initChannel(SocketChannel socketChannel) throws Exception {
-                            //特殊分隔符
-//                            ByteBuf delimiter = Unpooled.copiedBuffer("$_".getBytes());
-//                            socketChannel.pipeline().addLast(
-//                                    new DelimiterBasedFrameDecoder(1024, delimiter));
-                            //定长
-                            socketChannel.pipeline().addLast(new FixedLengthFrameDecoder(20));
-//                            socketChannel.pipeline().addLast(new StringDecoder());
-                            socketChannel.pipeline().addLast(new EchoServerHandler());
+                        protected void initChannel(SocketChannel sc) throws Exception {
+                            sc.pipeline().addLast(new ObjectDecoder(1024 * 1024,
+                                    ClassResolvers.weakCachingConcurrentResolver(
+                                            this.getClass().getClassLoader())));
+                            sc.pipeline().addLast(new ObjectEncoder());
+                            sc.pipeline().addLast(new SubReqServerHandler());
                         }
                     });
             //绑定端口，同步等待成功
@@ -58,6 +57,6 @@ public class EchoServer {
         } else {
             port = 8000;
         }
-        new EchoServer().bind(port);
+        new SubReqServer().bind(port);
     }
 }

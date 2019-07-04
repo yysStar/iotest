@@ -24,8 +24,8 @@ public class EchoServerHandler extends ChannelHandlerAdapter {
         System.out.println("Receive client:[" + body + "]");
 //        System.out.println("This is " + ++counter  + " times receive client:[" + body + "]");
 //        body += "$_";
-//        ByteBuf echo = Unpooled.copiedBuffer(body.getBytes());
-//        ctx.writeAndFlush(echo);
+        ByteBuf echo = Unpooled.copiedBuffer(body.getBytes());
+        ctx.writeAndFlush(echo);
     }
 
 //    @Override
